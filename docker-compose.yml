@@ -1,0 +1,34 @@
+version: "3.3"
+
+services:
+  database:
+    image: postgres
+    container_name: database
+    ports:
+    - 5431:5432
+    environment:
+      - POSTGRES_DB=task_queue
+      - POSTGRES_USER=ppostgres
+      - POSTGRES_PASSWORD=ppostgres
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+    - 6378:6379
+  migrations:
+    build: .
+    command: python manage.py makemigrations && python manage.py migrate
+  web:
+    build: .
+    container_name: web
+    restart: unless-stopped
+    working_dir: /app/
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+    - .:/app/
+    ports:
+    - 8000:8000
+    depends_on:
+      - database
+      - redis
+      - migrations
